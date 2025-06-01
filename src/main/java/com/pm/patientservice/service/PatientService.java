@@ -1,10 +1,13 @@
 package com.pm.patientservice.service;
 
+import com.pm.patientservice.dtos.PatientRequestDto;
 import com.pm.patientservice.dtos.PatientResponseDto;
+import com.pm.patientservice.exception.PatientSaveFailedException;
 import com.pm.patientservice.exception.RetrivedFailedException;
 
 import java.util.List;
 
 public interface PatientService {
     List<PatientResponseDto> getPatients() throws RetrivedFailedException;
+    PatientResponseDto createPatient(PatientRequestDto patientRequestDto) throws PatientSaveFailedException;
 }

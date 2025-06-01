@@ -1,20 +1,21 @@
 package com.pm.patientservice.controller;
 
 import com.pm.patientservice.dtos.APIResponseDto;
+import com.pm.patientservice.dtos.PatientRequestDto;
 import com.pm.patientservice.dtos.PatientResponseDto;
 import com.pm.patientservice.enums.ResponseCode;
+import com.pm.patientservice.exception.PatientSaveFailedException;
 import com.pm.patientservice.exception.RetrivedFailedException;
 import com.pm.patientservice.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -40,5 +41,19 @@ public class PatientController {
         }
         ResponseCode.SUCCESS.setReason("Patients retrieved successfully!");
         return ResponseEntity.ok(APIResponseDto.getInstance(ResponseCode.SUCCESS, patients));
+    }
+    @Tag(name = "PatientService", description = "Patient Service API")
+    @Operation(summary = "Method used to create a patient")
+    @PostMapping("/create-patient")
+    public ResponseEntity<APIResponseDto> createPatient(@Valid @RequestBody PatientRequestDto patientRequestDto) {
+        log.info("Create patient api...");
+        PatientResponseDto patient = null;
+        try {
+            patient = patientService.createPatient(patientRequestDto);
+        } catch (PatientSaveFailedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponseDto.getInstance(e.getResponseCode()));
+        }
+        ResponseCode.SUCCESS.setReason("Patient created successfully!");
+        return ResponseEntity.status(HttpStatus.CREATED).body(APIResponseDto.getInstance(ResponseCode.SUCCESS, patient));
     }
 }
