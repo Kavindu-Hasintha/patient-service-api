@@ -3,8 +3,11 @@ package com.pm.patientservice.controller;
 import com.pm.patientservice.dtos.APIResponseDto;
 import com.pm.patientservice.dtos.PatientRequestDto;
 import com.pm.patientservice.dtos.PatientResponseDto;
+import com.pm.patientservice.dtos.PatientUpdateRequestDto;
 import com.pm.patientservice.enums.ResponseCode;
+import com.pm.patientservice.exception.PatientNotFoundException;
 import com.pm.patientservice.exception.PatientSaveFailedException;
+import com.pm.patientservice.exception.PatientUpdateFailedException;
 import com.pm.patientservice.exception.RetrivedFailedException;
 import com.pm.patientservice.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,10 +17,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "/api/v1/patient")
@@ -55,5 +58,23 @@ public class PatientController {
         }
         ResponseCode.SUCCESS.setReason("Patient created successfully!");
         return ResponseEntity.status(HttpStatus.CREATED).body(APIResponseDto.getInstance(ResponseCode.SUCCESS, patient));
+    }
+
+    @Tag(name = "PatientService", description = "Patient Service API")
+    @Operation(summary = "Method used to update a patient")
+    @PutMapping("/update-patient/{id}")
+    public ResponseEntity<APIResponseDto> updatePatient(@PathVariable UUID id,
+                                                        @Valid @RequestBody PatientUpdateRequestDto requestDto) {
+        log.info("Update patient api...");
+        PatientResponseDto patient = null;
+        try {
+            patient = patientService.updatePatient(id, requestDto);
+        } catch (PatientNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponseDto.getInstance(e.getResponseCode()));
+        } catch (PatientUpdateFailedException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponseDto.getInstance(e.getResponseCode()));
+        }
+        ResponseCode.SUCCESS.setReason("Patient updated successfully!");
+        return ResponseEntity.status(HttpStatus.OK).body(APIResponseDto.getInstance(ResponseCode.SUCCESS, patient));
     }
 }

@@ -12,7 +12,9 @@ public enum ResponseCode {
     INVALID_REQUEST_DATA("Invalid Request Data", ""),
 
     PATIENT_LIST_FAIL("Patient List Failed", ""),
-    PATIENT_SAVE_FAIL("Patient Save Failed", "");
+    PATIENT_SAVE_FAIL("Patient Save Failed", ""),
+    PATIENT_NOT_FOUND("Patient Not Found", ""),
+    PATIENT_UPDATE_FAIL("Patient Update Failed", "");
 
     private String message;
     private String reason;
