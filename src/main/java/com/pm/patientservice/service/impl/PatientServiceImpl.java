@@ -4,10 +4,7 @@ import com.pm.patientservice.dtos.PatientRequestDto;
 import com.pm.patientservice.dtos.PatientResponseDto;
 import com.pm.patientservice.dtos.PatientUpdateRequestDto;
 import com.pm.patientservice.enums.ResponseCode;
-import com.pm.patientservice.exception.PatientNotFoundException;
-import com.pm.patientservice.exception.PatientSaveFailedException;
-import com.pm.patientservice.exception.PatientUpdateFailedException;
-import com.pm.patientservice.exception.RetrivedFailedException;
+import com.pm.patientservice.exception.*;
 import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repo.PatientRepo;
@@ -65,7 +62,6 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-//    @Transactional(propagation = Propagation.REQUIRED)
     @Transactional(rollbackFor = { Exception.class })
     public PatientResponseDto updatePatient(UUID patientId, PatientUpdateRequestDto requestDto)
             throws PatientNotFoundException, PatientUpdateFailedException {
@@ -73,6 +69,7 @@ public class PatientServiceImpl implements PatientService {
         try {
             Patient patient = patientRepo.findById(patientId).orElseThrow(
                     () -> {
+                        log.error("Patient not found with ID: " + patientId);
                         ResponseCode.PATIENT_NOT_FOUND.setReason("Patient not found with ID: " + patientId);
                         return new PatientNotFoundException(ResponseCode.PATIENT_NOT_FOUND);
                     }
@@ -84,10 +81,32 @@ public class PatientServiceImpl implements PatientService {
 
             Patient updatedPatient = patientRepo.save(patient);
             return PatientMapper.toDto(updatedPatient);
+        } catch (PatientNotFoundException e) {
+            throw new PatientNotFoundException(ResponseCode.PATIENT_NOT_FOUND);
         } catch (Exception e) {
             log.error("error occured while updating patient error: ", e.getMessage());
             ResponseCode.PATIENT_UPDATE_FAIL.setReason(e.getMessage());
             throw new PatientUpdateFailedException(ResponseCode.PATIENT_UPDATE_FAIL);
+        }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void deletePatient(UUID id) throws PatientNotFoundException, PatientDeleteFailedException {
+        log.info("deletePatient service...");
+        try {
+            if (!patientRepo.existsById(id)) {
+                log.error("Patient not found with ID: " + id);
+                ResponseCode.PATIENT_NOT_FOUND.setReason("Patient not found with ID: " + id);
+                throw new PatientNotFoundException(ResponseCode.PATIENT_NOT_FOUND);
+            }
+            patientRepo.deleteById(id);
+        } catch (PatientNotFoundException e) {
+            throw new PatientNotFoundException(ResponseCode.PATIENT_NOT_FOUND);
+        } catch (Exception e) {
+            log.error("error occured while deleting patient error: ", e.getMessage());
+            ResponseCode.PATIENT_DELETE_FAIL.setReason(e.getMessage());
+            throw new PatientDeleteFailedException(ResponseCode.PATIENT_DELETE_FAIL);
         }
     }
 }
