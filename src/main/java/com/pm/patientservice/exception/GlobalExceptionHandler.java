@@ -39,4 +39,17 @@ public class GlobalExceptionHandler {
                 APIResponseDto.getInstance(ResponseCode.INVALID_REQUEST_DATA, null));
 
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<APIResponseDto> handleIllegalArgumentException(IllegalArgumentException ex) {
+        String message = "Invalid input: ID must not be null";
+        if (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("id")) {
+            message = "ID must not be null or invalid";
+        }
+        ResponseCode.INVALID_REQUEST_DATA.setReason(message);
+        log.error(message + "...");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                APIResponseDto.getInstance(ResponseCode.INVALID_REQUEST_DATA, null));
+
+    }
 }
