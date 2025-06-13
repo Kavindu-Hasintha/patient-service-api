@@ -24,6 +24,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Patient", description = "API for managing patients")
 public class PatientController {
 
     private final PatientService patientService;
